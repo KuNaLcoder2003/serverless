@@ -25,6 +25,8 @@ function toHash(string: string) {
 	return Math.abs(hash);
 }
 
+app.get('/', (c) => c.text('Server is alive'));
+
 app.post('/signup', async (c) => {
 	const prisma = new PrismaClient({
 		datasourceUrl: c.env.DATABASE_URL,
@@ -90,6 +92,4 @@ app.post('/signup', async (c) => {
 	}
 })
 
-export default {
-	fetch: app.fetch
-}
+export default app;
