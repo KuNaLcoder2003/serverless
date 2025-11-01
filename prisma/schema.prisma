@@ -16,6 +16,7 @@ model Users {
   password String 
   created_on DateTime
   posts Posts[]
+   @@map("users")
 }
 
 model Posts{
