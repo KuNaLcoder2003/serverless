@@ -106,7 +106,7 @@ user.post('/signin', async (c) => {
             }, 403)
         }
 
-        const token = sign({
+        const token = await sign({
             id: user.id
         }, "93490-0=-")
 
