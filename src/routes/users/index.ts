@@ -5,7 +5,11 @@ import { sign } from "hono/jwt";
 const user = new Hono<{
     Bindings: {
         DATABASE_URL: string,
+    },
+    Variables: {
+        userId: string
     }
+
 }>;
 
 user.post('/signup', async (c) => {
