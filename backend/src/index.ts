@@ -5,6 +5,7 @@ import { verify } from "hono/jwt";
 
 import signup from "./routes/users";
 import posts from "./routes/posts";
+import { cors } from "hono/cors";
 
 
 const app = new Hono<{
@@ -31,6 +32,15 @@ function toHash(string: string) {
 
 	return Math.abs(hash);
 }
+
+app.use(
+	'*',
+	cors({
+		origin: 'http://localhost:5174',
+		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowHeaders: ['Content-Type', 'Authorization'],
+	})
+)
 
 
 app.get('/', (c) => c.text('Server is alive'));
