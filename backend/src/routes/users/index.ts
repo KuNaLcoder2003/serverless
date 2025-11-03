@@ -2,6 +2,10 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
+import { SignIn, signinInput, signupInput } from "@kunaljprsingh/medium-common"
+import { bodyLimit } from "hono/body-limit";
+
+
 const user = new Hono<{
     Bindings: {
         DATABASE_URL: string,
@@ -13,19 +17,20 @@ const user = new Hono<{
 }>;
 
 user.post('/signup', async (c) => {
-    console.log("DATABASE_URL:", c.env.DATABASE_URL);
-    const prisma = new PrismaClient({
-        datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
+
+
     try {
         const body = await c.req.json();
-        if (!body.username || !body.email || !body.password) {
+        const { success } = signupInput.safeParse(body)
+        if (!success) {
             return c.json({
-                message: "Missing entries",
+                message: 'Invalid Input types',
                 valid: false
-            }, 400)
-
+            }, 411)
         }
+        const prisma = new PrismaClient({
+            datasourceUrl: c.env.DATABASE_URL,
+        }).$extends(withAccelerate())
         const user = await prisma.users.findFirst({
             where: {
                 email: body.email
@@ -80,20 +85,22 @@ user.post('/signup', async (c) => {
 
 user.post('/signin', async (c) => {
     console.log("DATABASE_URL:", c.env.DATABASE_URL);
-    const prisma = new PrismaClient({
-        datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
+
     try {
-        const { email, password } = await c.req.json();
-        if (!email || !password) {
+        const body: SignIn = await c.req.json();
+        const { success } = signinInput.safeParse(body)
+        if (!success) {
             return c.json({
-                message: 'Invalid inputs',
-                valid: false
-            }, 400)
+                message: 'Inavlid inputs'
+            }, 411)
         }
+
+        const prisma = new PrismaClient({
+            datasourceUrl: c.env.DATABASE_URL,
+        }).$extends(withAccelerate())
         const user = await prisma.users.findFirst({
             where: {
-                email: email
+                email: body.email
             }
         })
         if (!user) {
@@ -103,7 +110,7 @@ user.post('/signin', async (c) => {
             }, 403)
         }
 
-        if (password !== user.password) {
+        if (body.password !== user.password) {
             return c.json({
                 message: "Incorrect password",
                 valid: false

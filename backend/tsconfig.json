@@ -40,6 +40,6 @@
 			"./worker-configuration.d.ts"
 		]
 	},
-	"exclude": ["test"],
+	"exclude": ["backend/test"],
 	"include": ["worker-configuration.d.ts", "backend/src/**/*.ts"]
 }

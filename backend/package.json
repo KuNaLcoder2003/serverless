@@ -17,8 +17,11 @@
 		"wrangler": "^4.45.0"
 	},
 	"dependencies": {
+		"@kunaljprsingh/medium-common": "^1.0.1",
 		"@prisma/client": "^6.18.0",
 		"@prisma/extension-accelerate": "^2.0.2",
-		"hono": "^4.10.4"
+		"hono": "^4.10.4",
+		"i": "^0.3.7",
+		"npm": "^11.6.2"
 	}
 }

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
+import { createBlog, CreateBlog } from "@kunaljprsingh/medium-common"
 
 const posts = new Hono<{
     Bindings: {
@@ -12,9 +13,7 @@ const posts = new Hono<{
 }>
 
 posts.post('/blog', async (c) => {
-    const prisma = new PrismaClient({
-        datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate())
+
     try {
         const userId = c.get('userId')
         if (!userId) {
@@ -24,18 +23,22 @@ posts.post('/blog', async (c) => {
             }, 401)
         }
 
-        const { title, content } = await c.req.json()
+        const body: CreateBlog = await c.req.json()
+        const { success } = createBlog.safeParse(body)
 
-        if (!title || !content) {
-            c.json({
-                message: 'Incomplete post details',
-                valid: false
-            }, 403)
+        if (!success) {
+            return c.json({
+                message: 'Invalid inputs'
+            }, 411)
         }
+
+        const prisma = new PrismaClient({
+            datasourceUrl: c.env.DATABASE_URL,
+        }).$extends(withAccelerate())
         const new_post = await prisma.posts.create({
             data: {
-                title: title,
-                content: content,
+                title: body.title,
+                content: body.constent,
                 authorId: userId,
                 created_on: new Date()
             }
@@ -79,13 +82,16 @@ posts.put('/blog/:id', async (c) => {
                 valid: false
             }, 403)
         }
-        const { title, content } = await c.req.json();
-        if (!title || !content) {
-            c.json({
-                message: 'Incomplete post details',
-                valid: false
-            }, 403)
+        const body: CreateBlog = await c.req.json();
+
+        const { success } = createBlog.safeParse(body)
+
+        if (!success) {
+            return c.json({
+                message: 'Invalid inputs'
+            }, 411)
         }
+
 
         const updated_blog = await prisma.posts.update({
             where: {
@@ -93,8 +99,8 @@ posts.put('/blog/:id', async (c) => {
                 authorId: userId
             },
             data: {
-                title: title,
-                content: content
+                title: body.title,
+                content: body.constent
             }
         })
         if (!updated_blog) {
@@ -169,6 +175,9 @@ posts.get('/blog/bulk', async (c) => {
             }, 401)
         }
         const blogs = await prisma.posts.findMany({});
+        return c.json({
+            blogs: blogs
+        }, 200)
     } catch (error) {
         return c.json({
             message: "Soemthing went wrong",
